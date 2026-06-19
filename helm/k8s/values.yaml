@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: jhontero/k8s
-  tag: "7c8d334cc7956232aac2d21a51cf6b56404ab2ad"
+  tag: "73ab192f37cfed0477181c2c29dc5765fb02393d"
   pullPolicy: IfNotPresent
 
 service:
