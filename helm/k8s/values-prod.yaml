@@ -1,0 +1,17 @@
+# values-prod.yaml
+# Override de configuración para el entorno de producción.
+# Se usa junto al values.yaml por defecto:
+#   helm upgrade --install k8s helm/k8s -f helm/k8s/values.yaml -f helm/k8s/values-prod.yaml
+#
+# Solo se sobreescriben los valores que cambian respecto al entorno por defecto;
+# el resto de valores (image, service, etc.) se heredan de values.yaml.
+
+replicaCount: 3
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi
+  requests:
+    cpu: 250m
+    memory: 128Mi

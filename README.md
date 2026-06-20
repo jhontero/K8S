@@ -21,7 +21,9 @@ Microservicio desplegado en Kubernetes mediante Helm, con despliegue continuo au
 ├── helm/
 │   └── k8s/
 │       ├── Chart.yaml
-│       ├── values.yaml     # Configuración del despliegue
+│       ├── values.yaml       # Configuración por defecto del despliegue
+│       ├── values-dev.yaml   # Override de configuración para entorno de desarrollo
+│       ├── values-prod.yaml  # Override de configuración para entorno de producción
 │       └── templates/
 │           ├── deployment.yaml
 │           ├── service.yaml
@@ -134,11 +136,26 @@ kubectl port-forward svc/k8s 5000:5000
 
 Y accede a `http://localhost:5000/`.
 
-## 6. Flujo de CI/CD automático
+## 6. Configuración por entorno (overrides de Helm)
+
+El chart usa `helm/k8s/values.yaml` como configuración por defecto. Para entornos específicos, se agregan archivos de override que solo sobreescriben los valores que cambian:
+
+- `values-dev.yaml` — una réplica, recursos mínimos, `pullPolicy: Always` para siempre traer la última imagen al probar
+- `values-prod.yaml` — tres réplicas, más CPU/memoria asignada
+
+Para desplegar manualmente con un override específico (fuera del flujo de ArgoCD, por ejemplo en pruebas locales):
+
+```powershell
+helm upgrade --install k8s helm/k8s -f helm/k8s/values.yaml -f helm/k8s/values-prod.yaml
+```
+
+El archivo que se pasa último (`-f`) tiene prioridad sobre los anteriores en caso de que ambos definan la misma clave.
+
+## 7. Flujo de CI/CD automático
 
 Cada vez que se hace `git push` a la rama `main`:
 
-1. **GitHub Actions** construye la imagen Docker del microservicio y la publica en Docker Hub, con dos tags: `latest` y el SHA del commit.
+1. **GitHub Actions** valida la sintaxis del código Python y construye la imagen Docker del microservicio, publicándola en Docker Hub con dos tags: `latest` y el SHA del commit.
 2. **GitHub Actions** actualiza automáticamente el campo `tag` en `helm/k8s/values.yaml` con el SHA de la nueva imagen, y hace commit y push de ese cambio.
 3. **ArgoCD**, que vigila este repositorio, detecta el cambio en `values.yaml` y sincroniza el clúster automáticamente, desplegando la nueva versión de la imagen (rolling update).
 
